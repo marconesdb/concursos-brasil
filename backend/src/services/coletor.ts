@@ -6,7 +6,7 @@ import { processarEditalComIA } from "./processador.js";
 import { buscarImagem } from "./imagens.js";
 
 const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: "@_" });
-const KEYWORDS = /concurso|edital|sele[çc][aã]o p[úu]blica|processo seletivo/i;
+const KEYWORDS = /concurso p[úu]blico|edital de concurso|sele[çc][aã]o p[úu]blica|processo seletivo p[úu]blico|abertura de inscri[çc][õo]es|vagas p[úu]blicas/i;
 
 interface EditalBruto {
   titulo: string;
