@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     proxy: {
-      // Redireciona /api/* do frontend (porta 3000) para o backend (porta 4000)
+      // Em dev: redireciona /api/* para o backend local
       "/api": {
         target: "http://localhost:4000",
         changeOrigin: true,
