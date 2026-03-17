@@ -2,17 +2,17 @@
 // ════════════════════════════════════════════════════════════════════
 // backend/src/middlewares/isAdmin.ts
 // ════════════════════════════════════════════════════════════════════
-import { Response, NextFunction } from "express";
+import { Response, NextFunction, Request } from "express";
 import { AuthRequest } from "./auth.js";
+import { execute } from "../db/index.js";
+
+export { AuthRequest };
 
 export function isAdmin(req: AuthRequest, res: Response, next: NextFunction) {
   if (req.user?.role !== "admin")
     return res.status(403).json({ error: "Acesso restrito a administradores" });
   next();
 }
-
-// ─── Helper: registrar ação admin no log ──────────────────────────
-import { execute } from "../db/index.js";
 
 export async function logAdmin(
   adminId: number,
@@ -29,6 +29,8 @@ export async function logAdmin(
   );
 }
 
-export const getIP = (req: Request) =>
-  (req.headers["x-forwarded-for"] as string)?.split(",")[0] ||
-  req.socket.remoteAddress || "";
+export function getIP(req: Request): string {
+  const forwarded = req.headers["x-forwarded-for"];
+  if (typeof forwarded === "string") return forwarded.split(",")[0];
+  return req.socket?.remoteAddress || "";
+}
