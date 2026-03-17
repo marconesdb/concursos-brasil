@@ -1,0 +1,5 @@
+{
+  "name": "Concursos Brasil - Editais Automatizados",
+  "description": "Plataforma automatizada de rastreamento, processamento e publicação de editais de concursos públicos com alertas via IA.",
+  "requestFramePermissions": ["notifications"]
+}
