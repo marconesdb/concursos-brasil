@@ -43,3 +43,4 @@ router5.post("/comunicado", async (req: AuthRequest, res) => {
 });
 
 export default router5;
+

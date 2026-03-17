@@ -13,10 +13,10 @@ router.get("/", async (_req, res) => {
     res.json({
       totalEditais:     await q("SELECT COUNT(*) as c FROM editais"),
       totalUsuarios:    await q("SELECT COUNT(*) as c FROM usuarios"),
-      editaisHoje:      await q("SELECT COUNT(*) as c FROM editais WHERE DATE(data_publicacao) = CURDATE()"),
-      notificacoesHoje: await q("SELECT COUNT(*) as c FROM notificacoes WHERE DATE(enviado_em) = CURDATE()"),
-      editaisSemana:    await q("SELECT COUNT(*) as c FROM editais WHERE data_publicacao >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)"),
-      editaisMes:       await q("SELECT COUNT(*) as c FROM editais WHERE data_publicacao >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)"),
+      editaisHoje:      await q("SELECT COUNT(*) as c FROM editais WHERE DATE(data_publicacao) = DATE('now')"),
+      notificacoesHoje: await q("SELECT COUNT(*) as c FROM notificacoes WHERE DATE(enviado_em) = DATE('now')"),
+      editaisSemana:    await q("SELECT COUNT(*) as c FROM editais WHERE data_publicacao >= DATE('now', '-7 days')"),
+      editaisMes:       await q("SELECT COUNT(*) as c FROM editais WHERE data_publicacao >= DATE('now', '-30 days')"),
     });
   } catch (err) { res.status(500).json({ error: "Erro interno" }); }
 });

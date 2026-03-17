@@ -77,7 +77,7 @@ export async function processarAlertas() {
   const editais = await query<Edital>(
     `SELECT * FROM editais
      WHERE publicado = 1
-       AND data_publicacao >= DATE_SUB(NOW(), INTERVAL 24 HOUR)`
+       AND data_publicacao >= DATE('now', '-1 day')`
   );
   if (!editais.length) {
     console.log("[ALERTAS] Nenhum edital novo nas últimas 24h.");
