@@ -1,7 +1,4 @@
-// frontend/src/App.tsx
-// VERSÃO COMPLETA — inclui todas as páginas públicas, admin e componentes
-
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   BrowserRouter as Router, Routes, Route, Link,
   useNavigate, useParams, Navigate
@@ -18,13 +15,11 @@ import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import axios from 'axios';
 
-// ─── Axios default config ─────────────────────────────────────────────────────
-
-
 // Configura base URL para produção
 if (import.meta.env.VITE_API_URL) {
   axios.defaults.baseURL = import.meta.env.VITE_API_URL;
 }
+
 axios.interceptors.request.use(cfg => {
   const token = localStorage.getItem('token');
   if (token) cfg.headers.Authorization = `Bearer ${token}`;
@@ -40,7 +35,7 @@ interface Edital {
   link_edital: string; link_inscricao: string; imagem_capa: string;
   prazo_inscricao: string; data_publicacao: string; publicado: number;
 }
-interface User { id: number; nome: string; email: string; role: string; }
+interface UserType { id: number; nome: string; email: string; role: string; }
 interface AlertaPerfil {
   regioes: string[]; estados: string[]; areas: string[];
   escolaridades: string[]; salario_minimo: number; frequencia: string;
@@ -65,13 +60,13 @@ const ESCOLARIDADES = ['fundamental','medio','tecnico','superior','pos'];
 // ─── useAuth hook ─────────────────────────────────────────────────────────────
 function useAuth() {
   const raw = localStorage.getItem('user');
-  const user: User | null = raw ? JSON.parse(raw) : null;
+  const user: UserType | null = raw ? JSON.parse(raw) : null;
   const logout = () => { localStorage.removeItem('user'); localStorage.removeItem('token'); };
   return { user, logout };
 }
 
 // ─── ProtectedRoute ───────────────────────────────────────────────────────────
-const ProtectedRoute = ({ children, admin = false }: { children: JSX.Element; admin?: boolean }) => {
+const ProtectedRoute = ({ children, admin = false }: { children: React.ReactElement; admin?: boolean }) => {
   const { user } = useAuth();
   if (!user) return <Navigate to="/login" replace />;
   if (admin && user.role !== 'admin') return <Navigate to="/" replace />;
@@ -83,7 +78,6 @@ const Navbar = () => {
   const [open, setOpen] = useState(false);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-
   const handleLogout = () => { logout(); navigate('/login'); setOpen(false); };
 
   return (
@@ -105,7 +99,6 @@ const Navbar = () => {
               <Link to="/sobre" className="text-gray-600 hover:text-emerald-600 font-medium text-sm">Como Funciona</Link>
             </div>
           </div>
-
           <div className="hidden md:flex items-center gap-3">
             {user ? (
               <>
@@ -134,13 +127,11 @@ const Navbar = () => {
               </>
             )}
           </div>
-
           <button className="md:hidden p-2 text-gray-600" onClick={() => setOpen(!open)}>
             {open ? <X /> : <Menu />}
           </button>
         </div>
       </div>
-
       <AnimatePresence>
         {open && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
@@ -220,7 +211,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => (
 const EditalCard = ({ edital, onSave }: { edital: Edital; onSave?: (id: number) => void }) => (
   <motion.div whileHover={{ y: -4 }}
     className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-lg transition-all flex flex-col">
-    <div className="relative h-44 overflow-hidden">
+    <div className="relative h-40 overflow-hidden flex-shrink-0">
       <img src={edital.imagem_capa || `https://picsum.photos/seed/${edital.id}/800/600`}
         alt={edital.titulo} className="w-full h-full object-cover" referrerPolicy="no-referrer"
         onError={e => { (e.target as HTMLImageElement).src = `https://picsum.photos/seed/concurso${edital.id}/800/600`; }} />
@@ -238,15 +229,15 @@ const EditalCard = ({ edital, onSave }: { edital: Edital; onSave?: (id: number) 
         </button>
       )}
     </div>
-    <div className="p-5 flex-1 flex flex-col">
-      <div className="flex items-center gap-1.5 text-gray-400 text-xs mb-2">
+    <div className="p-4 flex-1 flex flex-col">
+      <div className="flex items-center gap-1.5 text-gray-400 text-xs mb-1.5">
         <MapPin className="w-3 h-3" /> {edital.municipio} — {edital.estado}
       </div>
-      <h3 className="text-base font-bold text-gray-900 leading-snug mb-2 line-clamp-3">{edital.titulo}</h3>
-              <p className="text-gray-500 text-xs mb-4 line-clamp-3 italic flex-1">{edital.resumo_ia}</p>
-      <div className="grid grid-cols-2 gap-3 mb-4 text-xs">
+      <h3 className="text-sm font-bold text-gray-900 leading-snug mb-2 line-clamp-2">{edital.titulo}</h3>
+      <p className="text-gray-500 text-xs mb-3 line-clamp-2 flex-1">{edital.resumo_ia}</p>
+      <div className="grid grid-cols-2 gap-2 mb-3 text-xs">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center">
+          <div className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center flex-shrink-0">
             <Briefcase className="w-3.5 h-3.5 text-emerald-600" />
           </div>
           <div>
@@ -255,7 +246,7 @@ const EditalCard = ({ edital, onSave }: { edital: Edital; onSave?: (id: number) 
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center">
+          <div className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center flex-shrink-0">
             <DollarSign className="w-3.5 h-3.5 text-emerald-600" />
           </div>
           <div>
@@ -264,8 +255,8 @@ const EditalCard = ({ edital, onSave }: { edital: Edital; onSave?: (id: number) 
           </div>
         </div>
       </div>
-      <div className="flex items-center justify-between text-xs text-gray-400 mb-4">
-        <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> Prazo: {fmtData(edital.prazo_inscricao)}</span>
+      <div className="flex items-center justify-between text-xs text-gray-400 mb-3">
+        <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {fmtData(edital.prazo_inscricao)}</span>
         <span className="bg-gray-100 px-2 py-0.5 rounded font-medium capitalize">{edital.area}</span>
       </div>
       <Link to={`/edital/${edital.id}`}
@@ -300,10 +291,6 @@ const Pagination = ({ page, total, limit, onChange }: { page: number; total: num
   );
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// PÁGINAS PÚBLICAS
-// ─────────────────────────────────────────────────────────────────────────────
-
 // ─── Home ─────────────────────────────────────────────────────────────────────
 const Home = () => {
   const [editais, setEditais] = useState<Edital[]>([]);
@@ -325,14 +312,11 @@ const Home = () => {
 
   const handleSave = async (id: number) => {
     if (!user) return navigate('/login');
-    try {
-      await axios.post(`/api/usuarios/salvar/${id}`);
-    } catch { /* ignore */ }
+    try { await axios.post(`/api/usuarios/salvar/${id}`); } catch { /* ignore */ }
   };
 
   return (
     <div className="min-h-screen bg-gray-50/50">
-      {/* Hero */}
       <div className="bg-gradient-to-br from-emerald-700 to-emerald-500 py-24 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
@@ -364,14 +348,11 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Destaques */}
       {destaques.length > 0 && (
         <div className="max-w-7xl mx-auto px-4 pt-16">
-          <div className="flex justify-between items-end mb-6">
-            <div>
-              <span className="text-xs font-bold text-emerald-600 uppercase tracking-widest">Em destaque</span>
-              <h2 className="text-2xl font-extrabold text-gray-900">Mais Procurados</h2>
-            </div>
+          <div className="mb-6">
+            <span className="text-xs font-bold text-emerald-600 uppercase tracking-widest">Em destaque</span>
+            <h2 className="text-2xl font-extrabold text-gray-900">Mais Procurados</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {destaques.slice(0, 5).map(e => (
@@ -391,7 +372,6 @@ const Home = () => {
         </div>
       )}
 
-      {/* Feed */}
       <div className="max-w-7xl mx-auto px-4 py-16">
         <div className="flex justify-between items-end mb-8">
           <div>
@@ -401,25 +381,24 @@ const Home = () => {
           <Link to="/busca" className="text-emerald-600 font-bold text-sm hover:underline">Ver todos →</Link>
         </div>
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[1,2,3,4,5,6].map(i => <div key={i} className="h-96 bg-gray-200 animate-pulse rounded-2xl" />)}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1,2,3,4,5,6].map(i => <div key={i} className="h-80 bg-gray-200 animate-pulse rounded-2xl" />)}
           </div>
         ) : editais.length === 0 ? (
           <div className="text-center py-20 text-gray-400">Nenhum edital encontrado.</div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {editais.map(e => <EditalCard key={e.id} edital={e} onSave={handleSave} />)}
           </div>
         )}
       </div>
 
-      {/* CTA cadastro */}
-      {!useAuth().user && (
+      {!user && (
         <div className="bg-emerald-600 py-16 px-4">
           <div className="max-w-2xl mx-auto text-center">
             <Bell className="w-10 h-10 text-emerald-200 mx-auto mb-4" />
             <h2 className="text-3xl font-extrabold text-white mb-3">Não perca nenhum edital</h2>
-            <p className="text-emerald-100 mb-8">Crie sua conta e receba alertas personalizados por e-mail e notificação push.</p>
+            <p className="text-emerald-100 mb-8">Crie sua conta e receba alertas personalizados por e-mail.</p>
             <Link to="/cadastro" className="px-8 py-4 bg-white text-emerald-700 font-extrabold rounded-2xl hover:bg-emerald-50 transition-all shadow-xl">
               Criar Conta Grátis
             </Link>
@@ -438,15 +417,12 @@ const Busca = () => {
   const [loading, setLoading] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const LIMIT = 12;
-
-  // Filters
   const [q, setQ] = useState('');
   const [regiao, setRegiao] = useState('');
   const [estado, setEstado] = useState('');
   const [area, setArea] = useState('');
   const [escolaridade, setEscolaridade] = useState('');
   const [salarioMin, setSalarioMin] = useState('');
-
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -465,7 +441,7 @@ const Busca = () => {
       const res = await axios.get(`/api/editais?${params}`);
       const data = res.data;
       setEditais(Array.isArray(data) ? data : data.editais);
-      setTotal(Array.isArray(data) ? data.length : (data.total || data.editais?.length || 0));
+      setTotal(Array.isArray(data) ? data.length : (data.total || 0));
       setPage(p);
     } finally { setLoading(false); }
   }, [q, regiao, estado, area, escolaridade, salarioMin]);
@@ -496,7 +472,6 @@ const Busca = () => {
             <button onClick={() => buscar(1)}
               className="px-5 py-2.5 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 text-sm">Buscar</button>
           </div>
-
           <AnimatePresence>
             {showFilters && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
@@ -531,7 +506,6 @@ const Busca = () => {
           </AnimatePresence>
         </div>
       </div>
-
       <div className="max-w-7xl mx-auto px-4 py-10">
         <p className="text-sm text-gray-500 mb-6">{total} edital(is) encontrado(s)</p>
         {loading ? (
@@ -541,7 +515,7 @@ const Busca = () => {
         ) : editais.length === 0 ? (
           <div className="text-center py-24 text-gray-400">
             <Search className="w-12 h-12 mx-auto mb-4 opacity-30" />
-            <p className="font-medium">Nenhum edital encontrado com esses filtros.</p>
+            <p className="font-medium">Nenhum edital encontrado.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -604,7 +578,6 @@ const EditalPage = () => {
             <Heart className={`w-5 h-5 ${saved ? 'text-white fill-white' : 'text-gray-500'}`} />
           </button>
         </div>
-
         <div className="p-8 md:p-12">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
             {[
@@ -618,7 +591,6 @@ const EditalPage = () => {
               </div>
             ))}
           </div>
-
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
             {[
               { icon: <Briefcase className="w-4 h-4" />, label: 'Vagas', value: edital.vagas ?? '—' },
@@ -635,7 +607,6 @@ const EditalPage = () => {
               </div>
             ))}
           </div>
-
           {edital.resumo_ia && (
             <>
               <h2 className="text-xl font-extrabold text-gray-900 mb-3">Resumo pela IA</h2>
@@ -644,7 +615,6 @@ const EditalPage = () => {
               </div>
             </>
           )}
-
           <div className="flex flex-col sm:flex-row gap-4 mt-8">
             {edital.link_inscricao && (
               <a href={edital.link_inscricao} target="_blank" rel="noreferrer"
@@ -731,7 +701,7 @@ const Cadastro = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
+  const setField = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm(f => ({ ...f, [k]: e.target.value }));
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -766,7 +736,7 @@ const Cadastro = () => {
           ].map(({ label, key, type, ph }) => (
             <div key={key}>
               <label className="block text-sm font-bold text-gray-700 mb-1.5">{label}</label>
-              <input type={type} required value={(form as any)[key]} onChange={set(key)}
+              <input type={type} required value={(form as any)[key]} onChange={setField(key)}
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-400 focus:outline-none text-sm"
                 placeholder={ph} />
             </div>
@@ -799,8 +769,8 @@ const Perfil = () => {
     });
   }, []);
 
-  const toggle = (arr: string[], val: string, set: (a: string[]) => void) => {
-    set(arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val]);
+  const toggle = (arr: string[], val: string, setFn: (a: string[]) => void) => {
+    setFn(arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val]);
   };
 
   const save = async () => {
@@ -811,10 +781,8 @@ const Perfil = () => {
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
       <h1 className="text-3xl font-extrabold text-gray-900 mb-2">Meu Perfil</h1>
-      <p className="text-gray-500 mb-10">Configure seus alertas para receber editais compatíveis com seu perfil.</p>
-
+      <p className="text-gray-500 mb-10">Configure seus alertas para receber editais compatíveis.</p>
       <div className="space-y-8">
-        {/* Conta */}
         <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
           <h2 className="font-extrabold text-gray-900 mb-4 flex items-center gap-2">
             <User className="w-5 h-5 text-emerald-600" /> Dados da conta
@@ -830,24 +798,21 @@ const Perfil = () => {
             </div>
           </div>
         </div>
-
-        {/* Alertas */}
         <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm space-y-6">
           <h2 className="font-extrabold text-gray-900 flex items-center gap-2">
             <Bell className="w-5 h-5 text-emerald-600" /> Configurar Alertas
           </h2>
-
           {[
-            { label: 'Regiões', opts: REGIOES, arr: alerta.regioes, set: (v: string[]) => setAlerta(a => ({ ...a, regioes: v })) },
-            { label: 'Estados', opts: ESTADOS, arr: alerta.estados, set: (v: string[]) => setAlerta(a => ({ ...a, estados: v })) },
-            { label: 'Áreas', opts: AREAS, arr: alerta.areas, set: (v: string[]) => setAlerta(a => ({ ...a, areas: v })) },
-            { label: 'Escolaridade', opts: ESCOLARIDADES, arr: alerta.escolaridades, set: (v: string[]) => setAlerta(a => ({ ...a, escolaridades: v })) },
-          ].map(({ label, opts, arr, set }) => (
+            { label: 'Regiões', opts: REGIOES, arr: alerta.regioes, setFn: (v: string[]) => setAlerta(a => ({ ...a, regioes: v })) },
+            { label: 'Estados', opts: ESTADOS, arr: alerta.estados, setFn: (v: string[]) => setAlerta(a => ({ ...a, estados: v })) },
+            { label: 'Áreas', opts: AREAS, arr: alerta.areas, setFn: (v: string[]) => setAlerta(a => ({ ...a, areas: v })) },
+            { label: 'Escolaridade', opts: ESCOLARIDADES, arr: alerta.escolaridades, setFn: (v: string[]) => setAlerta(a => ({ ...a, escolaridades: v })) },
+          ].map(({ label, opts, arr, setFn }) => (
             <div key={label}>
               <p className="text-sm font-bold text-gray-700 mb-2">{label}</p>
               <div className="flex flex-wrap gap-2">
                 {opts.map(o => (
-                  <button key={o} onClick={() => toggle(arr, o, set)}
+                  <button key={o} onClick={() => toggle(arr, o, setFn)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold border capitalize transition-colors ${arr.includes(o) ? 'bg-emerald-600 text-white border-emerald-600' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
                     {o}
                   </button>
@@ -855,7 +820,6 @@ const Perfil = () => {
               </div>
             </div>
           ))}
-
           <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-sm font-bold text-gray-700 mb-2">Salário mínimo (R$)</p>
@@ -864,14 +828,13 @@ const Perfil = () => {
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-400 focus:outline-none" />
             </div>
             <div>
-              <p className="text-sm font-bold text-gray-700 mb-2">Frequência de alertas</p>
+              <p className="text-sm font-bold text-gray-700 mb-2">Frequência</p>
               <select value={alerta.frequencia} onChange={e => setAlerta(a => ({ ...a, frequencia: e.target.value }))}
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-400 focus:outline-none bg-white">
                 {['imediato','diario','semanal'].map(f => <option key={f} value={f} className="capitalize">{f}</option>)}
               </select>
             </div>
           </div>
-
           <button onClick={save}
             className={`flex items-center gap-2 px-6 py-3 rounded-xl font-extrabold text-sm transition-all ${saved ? 'bg-green-500 text-white' : 'bg-emerald-600 text-white hover:bg-emerald-700'}`}>
             {saved ? <><CheckCircle className="w-4 h-4" /> Salvo!</> : 'Salvar Alertas'}
@@ -931,12 +894,12 @@ const Salvos = () => {
 const Sobre = () => (
   <div className="max-w-3xl mx-auto px-4 py-16">
     <h1 className="text-4xl font-extrabold text-gray-900 mb-4">Como funciona</h1>
-    <p className="text-gray-600 text-lg mb-12">O ConcursosBrasil automatiza a coleta e o processamento de editais para você não perder oportunidades.</p>
+    <p className="text-gray-600 text-lg mb-12">O ConcursosBrasil automatiza a coleta e o processamento de editais.</p>
     {[
-      { icon: <BookOpen />, title: 'Coleta Automática', desc: 'Todo dia às 6h coletamos o Diário Oficial da União e feeds RSS parceiros, filtrando apenas editais de concursos.' },
-      { icon: <TrendingUp />, title: 'Processamento com IA', desc: 'Cada edital é processado pela IA Groq que extrai dados estruturados e gera um resumo em 3 linhas para facilitar a leitura.' },
-      { icon: <Bell />, title: 'Alertas Personalizados', desc: 'Configure seu perfil com regiões, áreas e escolaridade desejadas. Receba e-mail ou push notification imediatamente quando um edital compatível aparecer.' },
-      { icon: <Search />, title: 'Busca Avançada', desc: 'Filtre por estado, área, salário mínimo, escolaridade e banca organizadora para encontrar exatamente o que procura.' },
+      { icon: <BookOpen />, title: 'Coleta Automática', desc: 'Todo dia às 6h coletamos o Diário Oficial da União e feeds RSS, filtrando apenas editais de concursos.' },
+      { icon: <TrendingUp />, title: 'Processamento com IA', desc: 'Cada edital é processado pela IA Groq que extrai dados estruturados e gera um resumo em 3 linhas.' },
+      { icon: <Bell />, title: 'Alertas Personalizados', desc: 'Configure seu perfil e receba e-mail quando um edital compatível aparecer.' },
+      { icon: <Search />, title: 'Busca Avançada', desc: 'Filtre por estado, área, salário mínimo, escolaridade e banca organizadora.' },
     ].map(({ icon, title, desc }) => (
       <div key={title} className="flex gap-6 mb-10">
         <div className="w-12 h-12 bg-emerald-100 rounded-2xl flex items-center justify-center flex-shrink-0 text-emerald-600">{icon}</div>
@@ -949,11 +912,7 @@ const Sobre = () => (
   </div>
 );
 
-// ─────────────────────────────────────────────────────────────────────────────
-// PÁGINAS ADMIN
-// ─────────────────────────────────────────────────────────────────────────────
-
-// ─── Admin Dashboard ──────────────────────────────────────────────────────────
+// ─── Admin Pages ──────────────────────────────────────────────────────────────
 const AdminDashboard = () => {
   const [stats, setStats] = useState<any>(null);
   const [logs, setLogs] = useState<any[]>([]);
@@ -984,34 +943,30 @@ const AdminDashboard = () => {
           <RefreshCw className="w-4 h-4" /> Forçar Coleta
         </button>
       </div>
-
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
         {[
           { label: 'Total de Editais', value: stats.totalEditais, icon: <FileText />, color: 'text-emerald-600 bg-emerald-50' },
-          { label: 'Usuários Cadastrados', value: stats.totalUsuarios, icon: <Users />, color: 'text-blue-600 bg-blue-50' },
+          { label: 'Usuários', value: stats.totalUsuarios, icon: <Users />, color: 'text-blue-600 bg-blue-50' },
           { label: 'Editais Hoje', value: stats.editaisHoje, icon: <TrendingUp />, color: 'text-purple-600 bg-purple-50' },
-          { label: 'Notif. Enviadas Hoje', value: stats.notificacoesHoje ?? 0, icon: <Bell />, color: 'text-orange-600 bg-orange-50' },
+          { label: 'Notif. Hoje', value: stats.notificacoesHoje ?? 0, icon: <Bell />, color: 'text-orange-600 bg-orange-50' },
         ].map(({ label, value, icon, color }) => (
           <div key={label} className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-            <div className={`w-10 h-10 rounded-xl ${color} flex items-center justify-center mb-4`}>
-              {icon}
-            </div>
+            <div className={`w-10 h-10 rounded-xl ${color} flex items-center justify-center mb-4`}>{icon}</div>
             <p className="text-sm text-gray-500 mb-1">{label}</p>
             <p className="text-3xl font-extrabold text-gray-900">{value}</p>
           </div>
         ))}
       </div>
-
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
         <h2 className="font-extrabold text-gray-900 mb-4">Últimas Coletas</h2>
         {logs.length === 0 ? <p className="text-gray-400 text-sm">Nenhuma coleta registrada.</p> : (
           <table className="w-full text-sm">
             <thead><tr className="text-left text-gray-400 text-xs uppercase">
-              <th className="pb-3">Fonte</th><th className="pb-3">Novos</th><th className="pb-3">Duplicados</th><th className="pb-3">Erros</th><th className="pb-3">Data</th>
+              <th className="pb-3">Fonte</th><th className="pb-3">Novos</th><th className="pb-3">Dup.</th><th className="pb-3">Erros</th><th className="pb-3">Data</th>
             </tr></thead>
             <tbody className="divide-y divide-gray-50">
               {logs.map((l, i) => (
-                <tr key={i} className="py-2">
+                <tr key={i}>
                   <td className="py-2 font-medium text-gray-700">{l.fonte}</td>
                   <td className="py-2 text-emerald-600 font-bold">{l.editais_novos}</td>
                   <td className="py-2 text-gray-500">{l.editais_duplicados}</td>
@@ -1027,7 +982,6 @@ const AdminDashboard = () => {
   );
 };
 
-// ─── Admin Editais ────────────────────────────────────────────────────────────
 const AdminEditais = () => {
   const [editais, setEditais] = useState<Edital[]>([]);
   const [q, setQ] = useState('');
@@ -1060,9 +1014,7 @@ const AdminEditais = () => {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-extrabold text-gray-900">Gerenciar Editais</h1>
-      </div>
+      <h1 className="text-2xl font-extrabold text-gray-900 mb-6">Gerenciar Editais</h1>
       <div className="flex gap-3 mb-6">
         <input value={q} onChange={e => setQ(e.target.value)} onKeyDown={e => e.key === 'Enter' && carregar()}
           placeholder="Buscar edital..." className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-400 focus:outline-none" />
@@ -1073,16 +1025,12 @@ const AdminEditais = () => {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 text-left">
               <tr className="text-gray-500 text-xs uppercase">
-                <th className="px-4 py-3">Título</th>
-                <th className="px-4 py-3">Estado</th>
-                <th className="px-4 py-3">Vagas</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Ações</th>
+                <th className="px-4 py-3">Título</th><th className="px-4 py-3">Estado</th><th className="px-4 py-3">Vagas</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {editais.map(e => (
-                <tr key={e.id} className="hover:bg-gray-50 transition-colors">
+                <tr key={e.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3">
                     <p className="font-medium text-gray-900 line-clamp-1 max-w-xs">{e.titulo}</p>
                     <p className="text-xs text-gray-400">{e.orgao} · {e.banca}</p>
@@ -1096,16 +1044,13 @@ const AdminEditais = () => {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <button onClick={() => togglePublicado(e.id, e.publicado)} title={e.publicado ? 'Ocultar' : 'Publicar'}
-                        className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700">
+                      <button onClick={() => togglePublicado(e.id, e.publicado)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700">
                         {e.publicado ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
-                      <button onClick={() => reprocessar(e.id)} title="Reprocessar IA"
-                        className="p-1.5 rounded-lg hover:bg-emerald-50 text-gray-400 hover:text-emerald-600">
+                      <button onClick={() => reprocessar(e.id)} className="p-1.5 rounded-lg hover:bg-emerald-50 text-gray-400 hover:text-emerald-600">
                         <RefreshCw className="w-4 h-4" />
                       </button>
-                      <button onClick={() => excluir(e.id)} title="Excluir"
-                        className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-600">
+                      <button onClick={() => excluir(e.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-600">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -1120,10 +1065,8 @@ const AdminEditais = () => {
   );
 };
 
-// ─── Admin Usuarios ───────────────────────────────────────────────────────────
 const AdminUsuarios = () => {
   const [usuarios, setUsuarios] = useState<any[]>([]);
-
   useEffect(() => { axios.get('/api/admin/usuarios').then(r => setUsuarios(r.data)); }, []);
 
   const toggleAtivo = async (id: number, ativo: number) => {
@@ -1142,43 +1085,20 @@ const AdminUsuarios = () => {
       <h1 className="text-2xl font-extrabold text-gray-900 mb-6">Gerenciar Usuários</h1>
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50">
-            <tr className="text-gray-500 text-xs uppercase text-left">
-              <th className="px-4 py-3">Usuário</th>
-              <th className="px-4 py-3">Cadastro</th>
-              <th className="px-4 py-3">Role</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Ações</th>
-            </tr>
-          </thead>
+          <thead className="bg-gray-50"><tr className="text-gray-500 text-xs uppercase text-left">
+            <th className="px-4 py-3">Usuário</th><th className="px-4 py-3">Cadastro</th><th className="px-4 py-3">Role</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Ações</th>
+          </tr></thead>
           <tbody className="divide-y divide-gray-50">
             {usuarios.map(u => (
               <tr key={u.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3">
-                  <p className="font-medium text-gray-900">{u.nome}</p>
-                  <p className="text-xs text-gray-400">{u.email}</p>
-                </td>
+                <td className="px-4 py-3"><p className="font-medium text-gray-900">{u.nome}</p><p className="text-xs text-gray-400">{u.email}</p></td>
                 <td className="px-4 py-3 text-gray-500">{fmtData(u.criado_em)}</td>
-                <td className="px-4 py-3">
-                  <span className={`px-2 py-1 rounded-full text-xs font-bold ${u.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600'}`}>
-                    {u.role}
-                  </span>
-                </td>
-                <td className="px-4 py-3">
-                  <span className={`px-2 py-1 rounded-full text-xs font-bold ${u.ativo ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'}`}>
-                    {u.ativo ? 'Ativo' : 'Bloqueado'}
-                  </span>
-                </td>
+                <td className="px-4 py-3"><span className={`px-2 py-1 rounded-full text-xs font-bold ${u.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600'}`}>{u.role}</span></td>
+                <td className="px-4 py-3"><span className={`px-2 py-1 rounded-full text-xs font-bold ${u.ativo ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'}`}>{u.ativo ? 'Ativo' : 'Bloqueado'}</span></td>
                 <td className="px-4 py-3">
                   <div className="flex gap-2">
-                    <button onClick={() => toggleAtivo(u.id, u.ativo)}
-                      className="text-xs px-2 py-1 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-600 font-medium">
-                      {u.ativo ? 'Bloquear' : 'Ativar'}
-                    </button>
-                    <button onClick={() => promover(u.id, u.role)}
-                      className="text-xs px-2 py-1 border border-gray-200 rounded-lg hover:bg-purple-50 text-gray-600 hover:text-purple-700 font-medium">
-                      {u.role === 'admin' ? 'Remover Admin' : 'Tornar Admin'}
-                    </button>
+                    <button onClick={() => toggleAtivo(u.id, u.ativo)} className="text-xs px-2 py-1 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-600 font-medium">{u.ativo ? 'Bloquear' : 'Ativar'}</button>
+                    <button onClick={() => promover(u.id, u.role)} className="text-xs px-2 py-1 border border-gray-200 rounded-lg hover:bg-purple-50 text-gray-600 hover:text-purple-700 font-medium">{u.role === 'admin' ? 'Remover Admin' : 'Tornar Admin'}</button>
                   </div>
                 </td>
               </tr>
@@ -1190,23 +1110,17 @@ const AdminUsuarios = () => {
   );
 };
 
-// ─── Admin Coletas ────────────────────────────────────────────────────────────
 const AdminColetas = () => {
   const [logs, setLogs] = useState<any[]>([]);
   const [cronAtivo, setCronAtivo] = useState(true);
   const [forcing, setForcing] = useState(false);
 
-  useEffect(() => {
-    axios.get('/api/admin/coletas/logs').then(r => setLogs(r.data));
-  }, []);
+  useEffect(() => { axios.get('/api/admin/coletas/logs').then(r => setLogs(r.data)); }, []);
 
   const forcar = async () => {
     setForcing(true);
     await axios.post('/api/admin/coletas/forcar');
-    setTimeout(async () => {
-      const r = await axios.get('/api/admin/coletas/logs');
-      setLogs(r.data); setForcing(false);
-    }, 3000);
+    setTimeout(async () => { const r = await axios.get('/api/admin/coletas/logs'); setLogs(r.data); setForcing(false); }, 3000);
   };
 
   const toggleCron = async () => {
@@ -1219,26 +1133,20 @@ const AdminColetas = () => {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-extrabold text-gray-900">Controle de Coletas</h1>
         <div className="flex gap-3">
-          <button onClick={toggleCron}
-            className={`px-4 py-2.5 rounded-xl font-bold text-sm border transition-colors ${cronAtivo ? 'border-red-200 text-red-600 hover:bg-red-50' : 'border-emerald-200 text-emerald-600 hover:bg-emerald-50'}`}>
+          <button onClick={toggleCron} className={`px-4 py-2.5 rounded-xl font-bold text-sm border transition-colors ${cronAtivo ? 'border-red-200 text-red-600 hover:bg-red-50' : 'border-emerald-200 text-emerald-600 hover:bg-emerald-50'}`}>
             {cronAtivo ? 'Pausar Cron' : 'Ativar Cron'}
           </button>
-          <button onClick={forcar} disabled={forcing}
-            className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white font-bold rounded-xl text-sm hover:bg-emerald-700 disabled:opacity-60">
-            <RefreshCw className={`w-4 h-4 ${forcing ? 'animate-spin' : ''}`} />
-            {forcing ? 'Coletando...' : 'Forçar Agora'}
+          <button onClick={forcar} disabled={forcing} className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white font-bold rounded-xl text-sm hover:bg-emerald-700 disabled:opacity-60">
+            <RefreshCw className={`w-4 h-4 ${forcing ? 'animate-spin' : ''}`} /> {forcing ? 'Coletando...' : 'Forçar Agora'}
           </button>
         </div>
       </div>
-
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
         <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
           <p className="text-xs text-gray-400 uppercase font-bold mb-1">Status do Cron</p>
           <div className="flex items-center gap-2">
             <div className={`w-3 h-3 rounded-full ${cronAtivo ? 'bg-emerald-500 animate-pulse' : 'bg-gray-300'}`} />
-            <span className={`font-extrabold ${cronAtivo ? 'text-emerald-600' : 'text-gray-400'}`}>
-              {cronAtivo ? 'Ativo' : 'Pausado'}
-            </span>
+            <span className={`font-extrabold ${cronAtivo ? 'text-emerald-600' : 'text-gray-400'}`}>{cronAtivo ? 'Ativo' : 'Pausado'}</span>
           </div>
         </div>
         <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
@@ -1250,21 +1158,12 @@ const AdminColetas = () => {
           <p className="font-bold text-gray-900">{logs[0] ? fmtData(logs[0].executado_em) : '—'}</p>
         </div>
       </div>
-
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-50">
-          <h2 className="font-extrabold text-gray-900">Log de Coletas</h2>
-        </div>
+        <div className="px-6 py-4 border-b border-gray-50"><h2 className="font-extrabold text-gray-900">Log de Coletas</h2></div>
         <table className="w-full text-sm">
-          <thead className="bg-gray-50">
-            <tr className="text-gray-500 text-xs uppercase text-left">
-              <th className="px-4 py-3">Fonte</th>
-              <th className="px-4 py-3">Novos</th>
-              <th className="px-4 py-3">Duplicados</th>
-              <th className="px-4 py-3">Erros</th>
-              <th className="px-4 py-3">Executado em</th>
-            </tr>
-          </thead>
+          <thead className="bg-gray-50"><tr className="text-gray-500 text-xs uppercase text-left">
+            <th className="px-4 py-3">Fonte</th><th className="px-4 py-3">Novos</th><th className="px-4 py-3">Dup.</th><th className="px-4 py-3">Erros</th><th className="px-4 py-3">Data</th>
+          </tr></thead>
           <tbody className="divide-y divide-gray-50">
             {logs.map((l, i) => (
               <tr key={i} className="hover:bg-gray-50">
@@ -1282,7 +1181,6 @@ const AdminColetas = () => {
   );
 };
 
-// ─── Admin Notificações ───────────────────────────────────────────────────────
 const AdminNotificacoes = () => {
   const [historico, setHistorico] = useState<any[]>([]);
   const [comunicado, setComunicado] = useState('');
@@ -1303,41 +1201,26 @@ const AdminNotificacoes = () => {
     <div>
       <h1 className="text-2xl font-extrabold text-gray-900 mb-6">Notificações</h1>
       <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm mb-8">
-        <h2 className="font-extrabold text-gray-900 mb-4 flex items-center gap-2">
-          <Send className="w-5 h-5 text-emerald-600" /> Enviar Comunicado para Todos
-        </h2>
-        <textarea value={comunicado} onChange={e => setComunicado(e.target.value)}
-          placeholder="Escreva o comunicado aqui..."
+        <h2 className="font-extrabold text-gray-900 mb-4 flex items-center gap-2"><Send className="w-5 h-5 text-emerald-600" /> Enviar Comunicado</h2>
+        <textarea value={comunicado} onChange={e => setComunicado(e.target.value)} placeholder="Escreva o comunicado..."
           rows={4} className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-400 focus:outline-none resize-none mb-3" />
         <button onClick={enviarComunicado} disabled={sending || sent}
           className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${sent ? 'bg-green-500 text-white' : 'bg-emerald-600 text-white hover:bg-emerald-700'} disabled:opacity-60`}>
           {sent ? <><CheckCircle className="w-4 h-4" /> Enviado!</> : <><Send className="w-4 h-4" /> {sending ? 'Enviando...' : 'Enviar'}</>}
         </button>
       </div>
-
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-50">
-          <h2 className="font-extrabold text-gray-900">Histórico de Notificações</h2>
-        </div>
-        {historico.length === 0 ? <p className="p-6 text-gray-400 text-sm">Nenhuma notificação enviada ainda.</p> : (
+        <div className="px-6 py-4 border-b border-gray-50"><h2 className="font-extrabold text-gray-900">Histórico</h2></div>
+        {historico.length === 0 ? <p className="p-6 text-gray-400 text-sm">Nenhuma notificação enviada.</p> : (
           <table className="w-full text-sm">
-            <thead className="bg-gray-50">
-              <tr className="text-gray-500 text-xs uppercase text-left">
-                <th className="px-4 py-3">Usuário</th>
-                <th className="px-4 py-3">Canal</th>
-                <th className="px-4 py-3">Edital</th>
-                <th className="px-4 py-3">Enviado em</th>
-              </tr>
-            </thead>
+            <thead className="bg-gray-50"><tr className="text-gray-500 text-xs uppercase text-left">
+              <th className="px-4 py-3">Usuário</th><th className="px-4 py-3">Canal</th><th className="px-4 py-3">Edital</th><th className="px-4 py-3">Enviado em</th>
+            </tr></thead>
             <tbody className="divide-y divide-gray-50">
               {historico.map((n, i) => (
                 <tr key={i} className="hover:bg-gray-50">
                   <td className="px-4 py-3 font-medium text-gray-700">{n.usuario_nome || n.usuario_id}</td>
-                  <td className="px-4 py-3">
-                    <span className={`px-2 py-1 rounded-full text-xs font-bold ${n.canal === 'email' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
-                      {n.canal}
-                    </span>
-                  </td>
+                  <td className="px-4 py-3"><span className={`px-2 py-1 rounded-full text-xs font-bold ${n.canal === 'email' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>{n.canal}</span></td>
                   <td className="px-4 py-3 text-gray-500 text-xs max-w-xs truncate">{n.edital_titulo || n.edital_id}</td>
                   <td className="px-4 py-3 text-gray-400">{fmtData(n.enviado_em)}</td>
                 </tr>
@@ -1350,7 +1233,6 @@ const AdminNotificacoes = () => {
   );
 };
 
-// ─── Admin Fontes RSS ─────────────────────────────────────────────────────────
 const AdminFontes = () => {
   const [fontes, setFontes] = useState<any[]>([]);
   const [nova, setNova] = useState({ nome: '', url: '' });
@@ -1375,39 +1257,25 @@ const AdminFontes = () => {
       <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm mb-6">
         <h2 className="font-extrabold text-gray-900 mb-4">Adicionar nova fonte</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-          <input value={nova.nome} onChange={e => setNova(n => ({ ...n, nome: e.target.value }))}
-            placeholder="Nome da fonte" className="px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-400 focus:outline-none" />
-          <input value={nova.url} onChange={e => setNova(n => ({ ...n, url: e.target.value }))}
-            placeholder="https://..." type="url" className="px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-400 focus:outline-none" />
+          <input value={nova.nome} onChange={e => setNova(n => ({ ...n, nome: e.target.value }))} placeholder="Nome da fonte"
+            className="px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-400 focus:outline-none" />
+          <input value={nova.url} onChange={e => setNova(n => ({ ...n, url: e.target.value }))} placeholder="https://..." type="url"
+            className="px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-400 focus:outline-none" />
         </div>
-        <button onClick={adicionar} className="px-5 py-2.5 bg-emerald-600 text-white font-bold rounded-xl text-sm hover:bg-emerald-700">
-          Adicionar Fonte
-        </button>
+        <button onClick={adicionar} className="px-5 py-2.5 bg-emerald-600 text-white font-bold rounded-xl text-sm hover:bg-emerald-700">Adicionar</button>
       </div>
-
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50">
-            <tr className="text-gray-500 text-xs uppercase text-left">
-              <th className="px-4 py-3">Nome</th><th className="px-4 py-3">URL</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Ação</th>
-            </tr>
-          </thead>
+          <thead className="bg-gray-50"><tr className="text-gray-500 text-xs uppercase text-left">
+            <th className="px-4 py-3">Nome</th><th className="px-4 py-3">URL</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Ação</th>
+          </tr></thead>
           <tbody className="divide-y divide-gray-50">
             {fontes.map(f => (
               <tr key={f.id} className="hover:bg-gray-50">
                 <td className="px-4 py-3 font-medium text-gray-800">{f.nome}</td>
                 <td className="px-4 py-3 text-gray-400 text-xs max-w-xs truncate">{f.url}</td>
-                <td className="px-4 py-3">
-                  <span className={`px-2 py-1 rounded-full text-xs font-bold ${f.ativa ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>
-                    {f.ativa ? 'Ativa' : 'Pausada'}
-                  </span>
-                </td>
-                <td className="px-4 py-3">
-                  <button onClick={() => toggleAtiva(f.id, f.ativa)}
-                    className="text-xs px-3 py-1 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-600 font-medium">
-                    {f.ativa ? 'Pausar' : 'Ativar'}
-                  </button>
-                </td>
+                <td className="px-4 py-3"><span className={`px-2 py-1 rounded-full text-xs font-bold ${f.ativa ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>{f.ativa ? 'Ativa' : 'Pausada'}</span></td>
+                <td className="px-4 py-3"><button onClick={() => toggleAtiva(f.id, f.ativa)} className="text-xs px-3 py-1 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-600 font-medium">{f.ativa ? 'Pausar' : 'Ativar'}</button></td>
               </tr>
             ))}
           </tbody>
@@ -1417,7 +1285,6 @@ const AdminFontes = () => {
   );
 };
 
-// ─── Admin Configurações ──────────────────────────────────────────────────────
 const AdminConfiguracoes = () => {
   const [configs, setConfigs] = useState<any[]>([]);
   const [saving, setSaving] = useState<string | null>(null);
@@ -1432,11 +1299,9 @@ const AdminConfiguracoes = () => {
 
   return (
     <div>
-      <h1 className="text-2xl font-extrabold text-gray-900 mb-6">Configurações do Sistema</h1>
+      <h1 className="text-2xl font-extrabold text-gray-900 mb-6">Configurações</h1>
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-50">
-        {configs.length === 0 ? (
-          <p className="p-6 text-gray-400 text-sm">Nenhuma configuração encontrada.</p>
-        ) : configs.map(c => (
+        {configs.length === 0 ? <p className="p-6 text-gray-400 text-sm">Nenhuma configuração.</p> : configs.map(c => (
           <div key={c.chave} className="px-6 py-4 flex items-center gap-4">
             <div className="flex-1">
               <p className="font-bold text-gray-900 text-sm">{c.chave}</p>
@@ -1445,10 +1310,8 @@ const AdminConfiguracoes = () => {
             <div className="flex items-center gap-2 flex-1">
               <input defaultValue={c.valor} id={`cfg_${c.chave}`}
                 className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-400 focus:outline-none" />
-              <button onClick={() => {
-                const el = document.getElementById(`cfg_${c.chave}`) as HTMLInputElement;
-                atualizar(c.chave, el.value);
-              }} className={`px-3 py-2 rounded-xl text-xs font-bold transition-colors ${saving === c.chave ? 'bg-green-500 text-white' : 'bg-emerald-600 text-white hover:bg-emerald-700'}`}>
+              <button onClick={() => { const el = document.getElementById(`cfg_${c.chave}`) as HTMLInputElement; atualizar(c.chave, el.value); }}
+                className={`px-3 py-2 rounded-xl text-xs font-bold transition-colors ${saving === c.chave ? 'bg-green-500 text-white' : 'bg-emerald-600 text-white hover:bg-emerald-700'}`}>
                 {saving === c.chave ? '✓' : 'Salvar'}
               </button>
             </div>
@@ -1459,14 +1322,11 @@ const AdminConfiguracoes = () => {
   );
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// APP ROOT
-// ─────────────────────────────────────────────────────────────────────────────
+// ─── App Root ─────────────────────────────────────────────────────────────────
 export default function App() {
   return (
     <Router>
       <Routes>
-        {/* Admin — layout próprio, sem Navbar/Footer */}
         <Route path="/admin/*" element={
           <ProtectedRoute admin>
             <AdminLayout>
@@ -1482,8 +1342,6 @@ export default function App() {
             </AdminLayout>
           </ProtectedRoute>
         } />
-
-        {/* Público — com Navbar + Footer */}
         <Route path="*" element={
           <div className="min-h-screen flex flex-col font-sans selection:bg-emerald-100 selection:text-emerald-900">
             <Navbar />
