@@ -116,7 +116,7 @@ export async function runColeta() {
   for (const f of fontes) {
     try {
       todos = [...todos, ...(await coletarRSS(f.url, f.nome))];
-      await execute("UPDATE fontes_rss SET ultimo_acesso = NOW() WHERE id = ?", [f.id]);
+      await execute("UPDATE fontes_rss SET ultimo_acesso = datetime('now') WHERE id = ?", [f.id]);
     } catch (e) {
       console.warn(`[RSS] Falha ${f.nome}:`, (e as Error).message);
     }
