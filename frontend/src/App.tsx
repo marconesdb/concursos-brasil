@@ -234,7 +234,9 @@ const EditalCard = ({ edital, onSave }: { edital: Edital; onSave?: (id: number) 
         <MapPin className="w-3 h-3" /> {edital.municipio} — {edital.estado}
       </div>
       <h3 className="text-sm font-bold text-gray-900 leading-snug mb-2 line-clamp-2">{edital.titulo}</h3>
-      <p className="text-gray-500 text-xs mb-3 line-clamp-2 flex-1">{edital.resumo_ia}</p>
+      <p className="text-gray-400 text-xs mb-3 flex-1 overflow-hidden" style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+        {edital.resumo_ia?.split('\n').join(' ')}
+      </p>
       <div className="grid grid-cols-2 gap-2 mb-3 text-xs">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center flex-shrink-0">
